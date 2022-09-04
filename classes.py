@@ -17,6 +17,9 @@ class Talents(enum.Enum):
     gold = 7
     elegance = 8
     light = 9
+    admonition = 10
+    ingenuity = 11
+    praxis = 12
 
 
 class Gems(enum.Enum):
@@ -26,19 +29,22 @@ class Gems(enum.Enum):
     hydro = 4
     cryo = 5
     electro = 6
+    dendro = 7
 
 
 Locals = enum.Enum(value='Locals',
-                   names=("calla_lily cecilia dandelion_seed philanemo_mushroom lamp_grass valberry " 
+                   names=("calla_lily cecilia dandelion_seed philanemo_mushroom lamp_grass valberry yellow_lotus " 
                           "windwheel_aster wolfhook cor_lapis glaze_lily jueyun_chili noctilucous_jade qingxin "
-                          "silk_flower starconch violetgrass amakumo_fruit crystall_marrow dendrobium "
-                          "fluorescent_fungus naku_weed onikabuto sakura_bloom sango_pearl sea_ganoderma ")
+                          "silk_flower starconch violetgrass amakumo_fruit crystall_marrow dendrobium padisarah "
+                          "fluorescent_fungus naku_weed onikabuto sakura_bloom sango_pearl sea_ganoderma blue_lotus "
+                          "rukkhashava")
                    )
 
 
 Boss = enum.Enum(value="Boss",
                  names="geo_cube pyro_cube cryo_cube hydro_cube electro_cube anemo_cube cryo_plant pyro_plant serpent "
-                       "hydro_oceanid geovishap maguu_kenki mech_array electro_oceanid wolflord coral_defenders"
+                       "hydro_oceanid geovishap maguu_kenki mech_array electro_oceanid wolflord coral_defenders beak "
+                       "electro_plant"
                  )
 
 Boss_tals = enum.Enum(value='Boss_tals',
@@ -48,16 +54,17 @@ Boss_tals = enum.Enum(value='Boss_tals',
                       )
 Enemies_gen = enum.Enum(value='Enemies_gen',
                         names=("slime hilichurl_mask samachurl hilichurl_arrow fatui treasure_hoarder whopperflower "
-                               "nobushi spectral")
+                               "nobushi spectral fungi_gen eremites")
                         )
 
 Enemies_elite = enum.Enum(value='Enemies_elite',
-                          names="hilichurl_horn ley_line chaos_part mist knives bone chaos_sentinel prism "
-                                "riftwolf statuette"
+                          names="hilichurl_horn ley_line chaos_part mist knives bone chaos_sentinel prism fungi_el "
+                                "riftwolf statuette drake_chaos"
                           )
 
 Asc_weap = enum.Enum(value='Asc_weap',
-                     names="decarabian boreal gladiator guyun elixir aerosiderite branch narukami mask")
+                     names="decarabian boreal gladiator guyun elixir aerosiderite branch narukami mask talisman oasis "
+                           "might")
 
 
 @dataclass
@@ -101,23 +108,31 @@ class Weap_info(object):
 
 
 # ______________________________________________________________________________________________________________________
+# Characters list
+chars_names4 = sorted(['Sayu', 'Sucrose', 'Chongyun', 'Diona', 'Kaeya', 'Rosaria', 'Beidou', 'Fischl', 'Sara', 'Kuki',
+                      'Lisa', 'Razor', 'Gorou', 'Ningguang', 'Noelle', 'Yun_Jin', 'Barbara', 'Xingqiu', 'Amber',
+                      'Bennett', 'Thoma', 'Xiangling', 'Xinyan', 'Yanfei', 'Heizou', 'Collei', 'Dori'])
+chars_names5 = sorted(['Jean', 'Kazuha', 'Venti', 'Xiao', 'Aloy', 'Eula', 'Ganyu', 'Ayaka', 'Qiqi', 'Shenhe', 'Keqing',
+                       'Raiden', 'Yae_Miko', 'Albedo', 'Itto', 'Zhongli', 'Ayato', 'Mona', 'Kokomi', 'Tartaglia',
+                       'Yelan', 'Diluc', 'Hu_Tao', 'Klee', 'Yoimiya', 'Tighnari'])
+# ______________________________________________________________________________________________________________________
 # Weapons lists
-bows = sorted(["Skyward_Harp", "Amos_Bow", "Alley_Hunter", "The_Viridescent_Hunt", "The_Stringless", "Sacrificial_Bow",
-               "Rust", "Royal_Bow", "Prototype_Crescent", "Mouuns_Moon", "Mitternachts_Waltz", "Hamayumi",
+bows = sorted(["Skyward_Harp", "Amos'_Bow", "Alley_Hunter", "The_Viridescent_Hunt", "The_Stringless", "Sacrificial_Bow",
+               "Rust", "Royal_Bow", "Prototype_Crescent", "Mouun's_Moon", "Mitternachts_Waltz", "Hamayumi",
                "Favonius_Warbow", "Fading_Twilight", "Compound_Bow", "Blackcliff_Warbow"])
 catalysts = sorted(["Blackcliff_Agate", "The_Widsith", "Solar_Pearl", "Royal_Grimoire", "Sacrificial_Fragments",
                     "Prototype_Amber", "Oathsworn_Eye", "Wine_and_Song", "Mappa_Mare", "Hakushin_Ring", "Frostbearer",
                     "Favonius_Codex", "Eye_of_Perception", "Dodoco_Tales", 'Lost_Prayer_to_the_Sacred_Winds'])
-polearms = sorted(["Staff_of_Homa", "Prototype_Starglitter", "Lithic_Spear", "The_Catch", "Crescent_Pike",
-                   "Favonius_Lance", "Dragonspine_Spear", "Deathmatch", "Dragons_Bane", "Kitain_Cross_Spear",
-                   "Blackcliff_Pole", "Royal_Spear", "Wavebreakers_Fin", "Primordial_Jade_Winged_Spear"])
-claymores = sorted(["Redhorn_Stonethresher", "Whiteblind", "The_Bell", "Serpent_Spine", "Snow_Tombed_Starsilver",
+polearms = sorted(["Staff_of_Homa", "Prototype_Starglitter", "Lithic_Spear", "The_Cath", "Crescent_Pike",
+                   "Favonius_Lance", "Dragonspine_Spear", "Deathmatch", "Dragon's_Bane", "Kitain_Cross_Spear",
+                   "Blackcliff_Pole", "Royal_Spear", "Wavebreaker's_Fin", "Primordial_Jade_Winged-Spear"])
+claymores = sorted(["Redhorn_Stonethresher", "Whiteblind", "The_Bell", "Serpent_Spine", "Snow-Tombed_Starsilver",
                     "Sacrificial_Greatsword", "Lithic_Blade", "Blackcliff_Slasher", "Rainslasher", "Prototype_Archaic",
-                    "Akuoumaru", "Luxurious_Sea_Lord", "Katsuragikiri_Nagamasa", "Favonius_Greatsword",
-                    "Royal_Greatsword"])
+                    "Akuoumaru", "Luxurious_Sea-Lord", "Katsuragikiri_Nagamasa", "Favonius_Greatsword",
+                    "Royal_Greatsword", "Forest_Regalia"])
 swords = sorted(["Amenoma_Kageuchi", "The_Black_Sword", "The_Alley_Flash",  "Royal_Longsword", 'Kagotsurube_Isshin',
-                 "Sacrificial_Sword", "The_Flute", "Iron_String", "Prototype_Rancour", "Lions_Roar", "Freedom_Sworn",
-                 "Favonius_Sword", "Cinnabar_Spindle", "Blackcliff_Longsword", 'The_Black_Sword'])
+                 "Sacrificial_Sword", "The_Flute", "Iron_String", "Prototype_Rancour", "Lion's_Roar", "Freedom-Sworn",
+                 "Favonius_Sword", "Cinnabar_Spindle", "Blackcliff_Longsword", 'The_Black_Sword', "Sapwood_Blade"])
 # ______________________________________________________________________________________________________________________
 # all characters and their resources
 all_chars = {'Amber': Character(Gems.pyro, Talents.freedom, Locals.lamp_grass, Enemies_gen.hilichurl_arrow,
@@ -215,7 +230,13 @@ all_chars = {'Amber': Character(Gems.pyro, Talents.freedom, Locals.lamp_grass, E
              'Yun_Jin': Character(Gems.geo, Talents.diligence, Locals.glaze_lily, Enemies_gen.hilichurl_mask,
                                   Boss.wolflord, Boss_tals.signora_heart),
              'Zhongli': Character(Gems.geo, Talents.gold, Locals.cor_lapis, Enemies_gen.slime, Boss.geo_cube,
-                                  Boss_tals.childe_tusk)
+                                  Boss_tals.childe_tusk),
+             'Collei': Character(Gems.dendro, Talents.praxis, Locals.rukkhashava, Enemies_gen.hilichurl_arrow,
+                                 Boss.beak, Boss_tals.raiden_tears),
+             'Dori': Character(Gems.electro, Talents.ingenuity, Locals.blue_lotus, Enemies_gen.eremites,
+                               Boss.electro_plant, Boss_tals.azhdaha_branch),
+             'Tighnari': Character(Gems.dendro, Talents.admonition, Locals.yellow_lotus, Enemies_gen.fungi_gen,
+                                   Boss.beak, Boss_tals.raiden_meaning)
              }
 # ______________________________________________________________________________________________________________________
 # Dict with all weapon and its resources
@@ -298,7 +319,9 @@ all_weap = {"Skyward_Blade": Weapon(5, Asc_weap.boreal, Enemies_elite.ley_line, 
             "Royal_Spear": Weapon(4, Asc_weap.elixir, Enemies_elite.mist, Enemies_gen.fatui),
             "Favonius_Lance": Weapon(4, Asc_weap.gladiator, Enemies_elite.chaos_part, Enemies_gen.slime),
             "Dragonspine_Spear": Weapon(4, Asc_weap.boreal, Enemies_elite.mist, Enemies_gen.fatui),
-            "Dragons_Bane": Weapon(4, Asc_weap.elixir, Enemies_elite.mist, Enemies_gen.samachurl)
+            "Dragons_Bane": Weapon(4, Asc_weap.elixir, Enemies_elite.mist, Enemies_gen.samachurl),
+            "Forest_Regalia": Weapon(4, Asc_weap.talisman, Enemies_elite.drake_chaos, Enemies_gen.eremites),
+            "Sapwood_Blade": Weapon(4, Asc_weap.talisman, Enemies_elite.drake_chaos, Enemies_gen.eremites)
             }
 # ______________________________________________________________________________________________________________________
 # Dict with all chosen characters
@@ -313,8 +336,11 @@ added_w = {}
 resources = {'total_exp': 0, 'exp_weapon': 0, 'total_mora': 0, 'crystal_exp': [0, 0, 0, 0], 'book_exp': [0, 0, 0, 0]}
 # Information about user's inventory content
 having = {}
-# Spinboxes, labels, sometimes buttons
+# Spinboxes, labels, sometimes buttons (resources)
 cont = {}
+# Dicts with QActions
+actions_chars = {}
+actions_weap = {}
 
 # Lists with the amounts of required materials for chars
 mora_asc = [x for x in range(20000, 120001, 20000)]

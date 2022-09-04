@@ -1,9 +1,7 @@
-from PyQt5 import QtCore, QtGui, Qt  # QtWidgets, uic,
+from PyQt5 import QtCore, QtGui, Qt, QtWidgets  # , uic,
 import sys
 import atexit
-# import enum
 import copy
-# from dataclasses import *
 # from PyQt5.QtWidgets import (QApplication, QMainWindow, QMessageBox, QPushButton, QHBoxLayout, QSpacerItem,
 # QSizePolicy,
 #                              QToolButton, QFormLayout)
@@ -16,6 +14,7 @@ from classes import *
 currNameChar = ""
 currNameWeap = ''
 
+
 # TODO: добавить предупреждения, если данные введены некорректно  в принципе не обязательно..
 #       но можно сделать так, чтоб когда во второе окошко вводишь 50, в первое больше 50 ввесли нельзя было и тд
 # TODO: добавить русский язык
@@ -25,6 +24,7 @@ currNameWeap = ''
 
 
 # TODO: функции для очищения слоя с персонажами и оружием.
+#           сделать создание QAction-ов динамическим, поместить их в словарь, чтобы иметь доступ к ним динамически
 # TODO: добавить функцию hide, чтобы можно было скрыть персонажа и он не учитывался при подсчете, но выбранных оставался
 
 
@@ -33,6 +33,14 @@ class Window(QMainWindow):
         QMainWindow.__init__(self)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+
+        self.create_actions('characters', chars_names5, self.ui.menu5_star)
+        self.create_actions('characters', chars_names4, self.ui.menu4_star)
+        self.create_actions('weapon', bows, self.ui.menuBows)
+        self.create_actions('weapon', catalysts, self.ui.menuCatalysts)
+        self.create_actions('weapon', swords, self.ui.menuSwords)
+        self.create_actions('weapon', claymores, self.ui.menuClaymores)
+        self.create_actions('weapon', polearms, self.ui.menuPolearms)
 
         self.setWindowTitle('Genshin resources calculator')
         self.setWindowIcon(QtGui.QIcon(f":/icons/all/icon.jpg"))
@@ -52,198 +60,77 @@ class Window(QMainWindow):
         self.ui.buttonGroup_2.setId(self.ui.rb55, 5)
         self.ui.buttonGroup_2.setId(self.ui.rb66, 6)
         # Changing talents labels
-        self.ui.sliderNormal.valueChanged.connect(self.curr_normal_upd)
-        self.ui.sliderSkill.valueChanged.connect(self.curr_skill_upd)
-        self.ui.sliderBurst.valueChanged.connect(self.curr_burst_upd)
-        self.ui.sliderReqNormal.valueChanged.connect(self.req_normal_upd)
-        self.ui.sliderReqSkill.valueChanged.connect(self.req_skill_upd)
-        self.ui.sliderReqBurst.valueChanged.connect(self.req_burst_upd)
+        self.ui.sliderNormal.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderNormal, self.ui.labelCurrNormal))
+        self.ui.sliderSkill.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderSkill, self.ui.labelCurrSkill))
+        self.ui.sliderBurst.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderBurst, self.ui.labelCurrBurst))
+        self.ui.sliderReqNormal.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderReqNormal,
+                                                                          self.ui.labelReqNormal))
+        self.ui.sliderReqSkill.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderReqSkill, self.ui.labelReqSkill))
+        self.ui.sliderReqBurst.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderReqBurst, self.ui.labelReqBurst))
         # General functions
         self.ui.save_chars.clicked.connect(self.upd_char)
         self.ui.save_weap.clicked.connect(self.upd_weap)
         self.ui.tabWidget.currentChanged.connect(lambda: self.transfer(self.ui.tabWidget.currentIndex()))
-        self.read_file_chars()
-        self.read_file_weap()
-        # Connecting button adding functions to characters buttons in upper menu
-        self.ui.Jean.triggered.connect(lambda: self.add_char_button('Jean'))
-        self.ui.Kazuha.triggered.connect(lambda: self.add_char_button('Kazuha'))
-        self.ui.Sayu.triggered.connect(lambda: self.add_char_button('Sayu'))
-        self.ui.Sucrose.triggered.connect(lambda: self.add_char_button('Sucrose'))
-        self.ui.Xiao.triggered.connect(lambda: self.add_char_button('Xiao'))
-        self.ui.Aloy.triggered.connect(lambda: self.add_char_button('Aloy'))
-        self.ui.Chongyun.triggered.connect(lambda: self.add_char_button('Chongyun'))
-        self.ui.Diona.triggered.connect(lambda: self.add_char_button('Diona'))
-        self.ui.Ganyu.triggered.connect(lambda: self.add_char_button('Ganyu'))
-        self.ui.Kaeya.triggered.connect(lambda: self.add_char_button('Kaeya'))
-        self.ui.Ayaka.triggered.connect(lambda: self.add_char_button('Ayaka'))
-        self.ui.Qiqi.triggered.connect(lambda: self.add_char_button('Qiqi'))
-        self.ui.Rosaria.triggered.connect(lambda: self.add_char_button('Rosaria'))
-        self.ui.Shenhe.triggered.connect(lambda: self.add_char_button('Shenhe'))
-        self.ui.Beidou.triggered.connect(lambda: self.add_char_button('Beidou'))
-        self.ui.Fischl.triggered.connect(lambda: self.add_char_button('Fischl'))
-        self.ui.Keqing.triggered.connect(lambda: self.add_char_button('Keqing'))
-        self.ui.Sara.triggered.connect(lambda: self.add_char_button('Sara'))
-        self.ui.Kuki.triggered.connect(lambda: self.add_char_button('Kuki'))
-        self.ui.Lisa.triggered.connect(lambda: self.add_char_button('Lisa'))
-        self.ui.Raiden.triggered.connect(lambda: self.add_char_button('Raiden'))
-        self.ui.Razor.triggered.connect(lambda: self.add_char_button('Razor'))
-        self.ui.Yae_Miko.triggered.connect(lambda: self.add_char_button('Yae_Miko'))
-        self.ui.Albedo.triggered.connect(lambda: self.add_char_button('Albedo'))
-        self.ui.Itto.triggered.connect(lambda: self.add_char_button('Itto'))
-        self.ui.Gorou.triggered.connect(lambda: self.add_char_button('Gorou'))
-        self.ui.Ningguang.triggered.connect(lambda: self.add_char_button('Ningguang'))
-        self.ui.Noelle.triggered.connect(lambda: self.add_char_button('Noelle'))
-        self.ui.Yun_Jin.triggered.connect(lambda: self.add_char_button('Yun_Jin'))
-        self.ui.Zhongli.triggered.connect(lambda: self.add_char_button('Zhongli'))
-        self.ui.Barbara.triggered.connect(lambda: self.add_char_button('Barbara'))
-        self.ui.Ayato.triggered.connect(lambda: self.add_char_button('Ayato'))
-        self.ui.Mona.triggered.connect(lambda: self.add_char_button('Mona'))
-        self.ui.Kokomi.triggered.connect(lambda: self.add_char_button('Kokomi'))
-        self.ui.Tartaglia.triggered.connect(lambda: self.add_char_button('Tartaglia'))
-        self.ui.Xingqiu.triggered.connect(lambda: self.add_char_button('Xingqiu'))
-        self.ui.Yelan.triggered.connect(lambda: self.add_char_button('Yelan'))
-        self.ui.Amber.triggered.connect(lambda: self.add_char_button('Amber'))
-        self.ui.Bennett.triggered.connect(lambda: self.add_char_button('Bennett'))
-        self.ui.Diluc.triggered.connect(lambda: self.add_char_button('Diluc'))
-        self.ui.Hu_Tao.triggered.connect(lambda: self.add_char_button('Hu_Tao'))
-        self.ui.Klee.triggered.connect(lambda: self.add_char_button('Klee'))
-        self.ui.Thoma.triggered.connect(lambda: self.add_char_button('Thoma'))
-        self.ui.Xiangling.triggered.connect(lambda: self.add_char_button('Xiangling'))
-        self.ui.Xinyan.triggered.connect(lambda: self.add_char_button('Xinyan'))
-        self.ui.Yanfei.triggered.connect(lambda: self.add_char_button('Yanfei'))
-        self.ui.Yoimiya.triggered.connect(lambda: self.add_char_button('Yoimiya'))
-        # Connecting button adding functions to weapon buttons in upper menu
-        self.ui.Alley_Hunter.triggered.connect(lambda: self.add_weap_button('Alley_Hunter'))
-        self.ui.Amos_Bow.triggered.connect(lambda: self.add_weap_button('Amos_Bow'))
-        self.ui.Blackcliff_Warbow.triggered.connect(lambda: self.add_weap_button('Blackcliff_Warbow'))
-        self.ui.Compound_Bow.triggered.connect(lambda: self.add_weap_button('Compound_Bow'))
-        self.ui.Fading_Twilight.triggered.connect(lambda: self.add_weap_button('Fading_Twilight'))
-        self.ui.Favonius_Warbow.triggered.connect(lambda: self.add_weap_button('Favonius_Warbow'))
-        self.ui.Hamayumi.triggered.connect(lambda: self.add_weap_button('Hamayumi'))
-        self.ui.Mitternachts_Waltz.triggered.connect(lambda: self.add_weap_button('Mitternachts_Waltz'))
-        self.ui.Mouuns_Moon.triggered.connect(lambda: self.add_weap_button('Mouuns_Moon'))
-        self.ui.Prototype_Crescent.triggered.connect(lambda: self.add_weap_button('Prototype_Crescent'))
-        self.ui.Royal_Bow.triggered.connect(lambda: self.add_weap_button('Royal_Bow'))
-        self.ui.Rust.triggered.connect(lambda: self.add_weap_button('Rust'))
-        self.ui.Sacrificial_Bow.triggered.connect(lambda: self.add_weap_button('Sacrificial_Bow'))
-        self.ui.Skyward_Harp.triggered.connect(lambda: self.add_weap_button('Skyward_Harp'))
-        self.ui.The_Stringless.triggered.connect(lambda: self.add_weap_button('The_Stringless'))
-        self.ui.The_Viridescent_Hunt.triggered.connect(lambda: self.add_weap_button('The_Viridescent_Hunt'))
-        self.ui.Blackcliff_Agate.triggered.connect(lambda: self.add_weap_button('Blackcliff_Agate'))
-        self.ui.Dodoco_Tales.triggered.connect(lambda: self.add_weap_button('Dodoco_Tales'))
-        self.ui.Eye_of_Perception.triggered.connect(lambda: self.add_weap_button('Eye_of_Perception'))
-        self.ui.Favonius_Codex.triggered.connect(lambda: self.add_weap_button('Favonius_Codex'))
-        self.ui.Frostbearer.triggered.connect(lambda: self.add_weap_button('Frostbearer'))
-        self.ui.Hakushin_Ring.triggered.connect(lambda: self.add_weap_button('Hakushin_Ring'))
-        self.ui.Lost_Prayer_to_the_Sacred_Winds.triggered.connect(
-            lambda: self.add_weap_button('Lost_Prayer_to_the_Sacred_Winds'))
-        self.ui.Mappa_Mare.triggered.connect(lambda: self.add_weap_button('Mappa_Mare'))
-        self.ui.Oathsworn_Eye.triggered.connect(lambda: self.add_weap_button('Oathsworn_Eye'))
-        self.ui.Prototype_Amber.triggered.connect(lambda: self.add_weap_button('Prototype_Amber'))
-        self.ui.Royal_Grimoire.triggered.connect(lambda: self.add_weap_button('Royal_Grimoire'))
-        self.ui.Sacrificial_Fragments.triggered.connect(lambda: self.add_weap_button('Sacrificial_Fragments'))
-        self.ui.Solar_Pearl.triggered.connect(lambda: self.add_weap_button('Solar_Pearl'))
-        self.ui.The_Widsith.triggered.connect(lambda: self.add_weap_button('The_Widsith'))
-        self.ui.Wine_and_Song.triggered.connect(lambda: self.add_weap_button('Wine_and_Song'))
-        self.ui.Blackcliff_Pole.triggered.connect(lambda: self.add_weap_button('Blackcliff_Pole'))
-        self.ui.Crescent_Pike.triggered.connect(lambda: self.add_weap_button('Crescent_Pike'))
-        self.ui.Deathmatch.triggered.connect(lambda: self.add_weap_button('Deathmatch'))
-        self.ui.Dragons_Bane.triggered.connect(lambda: self.add_weap_button('Dragons_Bane'))
-        self.ui.Dragonspine_Spear.triggered.connect(lambda: self.add_weap_button('Dragonspine_Spear'))
-        self.ui.Favonius_Lance.triggered.connect(lambda: self.add_weap_button('Favonius_Lance'))
-        self.ui.Kitain_Cross_Spear.triggered.connect(lambda: self.add_weap_button('Kitain_Cross_Spear'))
-        self.ui.Lithic_Spear.triggered.connect(lambda: self.add_weap_button('Lithic_Spear'))
-        self.ui.Primordial_Jade_Winged_Spear.triggered.connect(
-            lambda: self.add_weap_button('Primordial_Jade_Winged_Spear'))
-        self.ui.Prototype_Starglitter.triggered.connect(lambda: self.add_weap_button('Prototype_Starglitter'))
-        self.ui.Royal_Spear.triggered.connect(lambda: self.add_weap_button('Royal_Spear'))
-        self.ui.Staff_of_Homa.triggered.connect(lambda: self.add_weap_button('Staff_of_Homa'))
-        self.ui.The_Catch.triggered.connect(lambda: self.add_weap_button('The_Catch'))
-        self.ui.Wavebreakers_Fin.triggered.connect(lambda: self.add_weap_button('Wavebreakers_Fin'))
-        self.ui.Akuoumaru.triggered.connect(lambda: self.add_weap_button('Akuoumaru'))
-        self.ui.Blackcliff_Slasher.triggered.connect(lambda: self.add_weap_button('Blackcliff_Slasher'))
-        self.ui.Favonius_Greatsword.triggered.connect(lambda: self.add_weap_button('Favonius_Greatsword'))
-        self.ui.Katsuragikiri_Nagamasa.triggered.connect(lambda: self.add_weap_button('Katsuragikiri_Nagamasa'))
-        self.ui.Lithic_Blade.triggered.connect(lambda: self.add_weap_button('Lithic_Blade'))
-        self.ui.Luxurious_Sea_Lord.triggered.connect(lambda: self.add_weap_button('Luxurious_Sea_Lord'))
-        self.ui.Prototype_Archaic.triggered.connect(lambda: self.add_weap_button('Prototype_Archaic'))
-        self.ui.Rainslasher.triggered.connect(lambda: self.add_weap_button('Rainslasher'))
-        self.ui.Redhorn_Stonethresher.triggered.connect(lambda: self.add_weap_button('Redhorn_Stonethresher'))
-        self.ui.Royal_Greatsword.triggered.connect(lambda: self.add_weap_button('Royal_Greatsword'))
-        self.ui.Sacrificial_Greatsword.triggered.connect(lambda: self.add_weap_button('Sacrificial_Greatsword'))
-        self.ui.Serpent_Spine.triggered.connect(lambda: self.add_weap_button('Serpent_Spine'))
-        self.ui.Snow_Tombed_Starsilver.triggered.connect(lambda: self.add_weap_button('Snow_Tombed_Starsilver'))
-        self.ui.The_Bell.triggered.connect(lambda: self.add_weap_button('The_Bell'))
-        self.ui.Whiteblind.triggered.connect(lambda: self.add_weap_button('Whiteblind'))
-        self.ui.Amenoma_Kageuchi.triggered.connect(lambda: self.add_weap_button('Amenoma_Kageuchi'))
-        self.ui.Blackcliff_Longsword.triggered.connect(lambda: self.add_weap_button('Blackcliff_Longsword'))
-        self.ui.Cinnabar_Spindle.triggered.connect(lambda: self.add_weap_button('Cinnabar_Spindle'))
-        self.ui.Favonius_Sword.triggered.connect(lambda: self.add_weap_button('Favonius_Sword'))
-        self.ui.Freedom_Sworn.triggered.connect(lambda: self.add_weap_button('Freedom_Sworn'))
-        self.ui.Iron_String.triggered.connect(lambda: self.add_weap_button('Iron_String'))
-        self.ui.Kagotsurube_Isshin.triggered.connect(lambda: self.add_weap_button('Kagotsurube_Isshin'))
-        self.ui.Lions_Roar.triggered.connect(lambda: self.add_weap_button('Lions_Roar'))
-        self.ui.Prototype_Rancour.triggered.connect(lambda: self.add_weap_button('Prototype_Rancour'))
-        self.ui.Royal_Longsword.triggered.connect(lambda: self.add_weap_button('Royal_Longsword'))
-        self.ui.Sacrificial_Sword.triggered.connect(lambda: self.add_weap_button('Sacrificial_Sword'))
-        self.ui.The_Alley_Flash.triggered.connect(lambda: self.add_weap_button('The_Alley_Flash'))
-        self.ui.The_Black_Sword.triggered.connect(lambda: self.add_weap_button('The_Black_Sword'))
-        self.ui.The_Black_Sword.triggered.connect(lambda: self.add_weap_button('The_Black_Sword'))
-        self.ui.The_Flute.triggered.connect(lambda: self.add_weap_button('The_Flute'))
 
+        self.ui.clear_chars.clicked.connect(lambda: self.clear_buttons('chars', added, actions_chars))
+        self.ui.clear_weap.clicked.connect(lambda: self.clear_buttons('weap', added_w, actions_weap))
+
+    # __________________________________________________________________________________________________________________
+    def create_actions(self, mode: str, listt: list, category: QtWidgets.QMenu):
+        for name in listt:
+            namesp = self.name_translate(name, "_", " ")
+            curr = QAction()
+            curr.setCheckable(True)
+            curr.setText(namesp)
+            if mode == 'characters':
+                curr.triggered.connect(self.add_char_button)
+                actions_chars[name] = curr
+            elif mode == 'weapon':
+                curr.triggered.connect(self.add_weap_button)
+                actions_weap[name] = curr
+            category.addAction(curr)
     # __________________________________________________________________________________________________________________
     # Changing talents labels
-    def curr_normal_upd(self):
-        val = self.ui.sliderNormal.value()
-        self.ui.labelCurrNormal.setText(str(val))
-
-    def curr_skill_upd(self):
-        val = self.ui.sliderSkill.value()
-        self.ui.labelCurrSkill.setText(str(val))
-
-    def curr_burst_upd(self):
-        val = self.ui.sliderBurst.value()
-        self.ui.labelCurrBurst.setText(str(val))
-
-    def req_normal_upd(self):
-        val = self.ui.sliderReqNormal.value()
-        self.ui.labelReqNormal.setText(str(val))
-
-    def req_skill_upd(self):
-        val = self.ui.sliderReqSkill.value()
-        self.ui.labelReqSkill.setText(str(val))
-
-    def req_burst_upd(self):
-        val = self.ui.sliderReqBurst.value()
-        self.ui.labelReqBurst.setText(str(val))
+    @staticmethod
+    def tal_upd(slider: QSlider, label: QLabel):
+        label.setText(str(slider.value()))
+    # __________________________________________________________________________________________________________________
+    @staticmethod
+    def name_translate(name: str, from_: str, to: str):
+        """
+        :param name: обрабатываемая строка
+        :param from_: символ, который нужно заменить
+        :param to: символ, на который нужно заменить
+        :return: измененная строка
+        """
+        if from_ in name:
+            return to.join(name.split(from_))
+        else:
+            return name
     # __________________________________________________________________________________________________________________
 
-    def add_char_button(self, name: str):
+    def add_char_button(self):
         sender = self.sender()
-        if sender.isChecked and name not in added.keys():
+        namesp = sender.text()
+        nameus = self.name_translate(namesp, ' ', '_')
+        if sender.isChecked and nameus not in added.keys():
             # adding a button
             btn = QToolButton(parent=self.ui.scrollAreaChars)
             btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
             btn.clicked.connect(self.upd_right_menu_char)
-            if '_' in name:
-                btn.setText(name.split('_')[0] + ' ' + name.split('_')[1])
-            else:
-                btn.setText(name)
+            btn.setText(namesp)
             self.ui.horizontalLayout_6.addWidget(btn)
-
-            # Icon, it's Geometry
-            btn.setIcon(QtGui.QIcon(f":/chars/all/{name}.webp"))
+            # Icon, its Geometry
+            btn.setIcon(QtGui.QIcon(f":/chars/all/{nameus}.webp"))
             btn.setIconSize(QtCore.QSize(285, 530))
 
-            added[name] = btn
+            added[nameus] = btn
         else:
-            if name in added.keys():
-                sender.toggle()
-            nn = added[name]
+            nn = added[nameus]
             nn.setParent(None)
-            del added[name]
-            if name in chosen.keys():
-                del chosen[name]
+            del added[nameus]
+            if nameus in chosen.keys():
+                del chosen[nameus]
             if not added:
                 global currNameChar
                 currNameChar = ''
@@ -254,7 +141,7 @@ class Window(QMainWindow):
             msg.setWindowTitle("Error")
             msg.setText("Click on character's portrait!")
             msg.setIcon(QMessageBox.Warning)
-            d = msg.exec_()
+            msg.exec_()
             return
         clvl = self.ui.spinBoxCCL.value()
         rlvl = self.ui.spinBoxRCL.value()
@@ -273,10 +160,8 @@ class Window(QMainWindow):
         bb = sender.text()
         # Receiving char's name from button
         global currNameChar
-        if ' ' in bb:
-            currNameChar = bb.split(" ")[0] + '_' + bb.split(" ")[1]
-        else:
-            currNameChar = bb
+        currNameChar = self.name_translate(bb, ' ', '_')
+
         # setting saved info
         if currNameChar in chosen.keys():
             aa = chosen[currNameChar]
@@ -299,10 +184,7 @@ class Window(QMainWindow):
         sender = self.sender()
         bb = sender.text()
         global currNameWeap
-        if ' ' in bb:
-            currNameWeap = bb.split(" ")[0] + '_' + bb.split(" ")[1]
-        else:
-            currNameWeap = bb
+        currNameWeap = self.name_translate(bb, " ", '_')
 
         if currNameWeap in chosen_w.keys():
             dd = chosen_w[currNameWeap]
@@ -316,38 +198,32 @@ class Window(QMainWindow):
             self.ui.dialRef.setValue(0)
             self.ui.dialReqRef.setValue(0)
 
-    def add_weap_button(self, name: str):
+    def add_weap_button(self):
         sender = self.sender()
-        if sender.isChecked() and name not in added_w.keys():
+        namesp = sender.text()
+        nameus = self.name_translate(namesp, ' ', '_')
+        name1 = self.name_translate(nameus, "'", '')
+        name2 = self.name_translate(name1, "-", "_")
+        if sender.isChecked() and nameus not in added_w.keys():
             # adding a button
             btn = QToolButton(parent=self.ui.scrollAreaWeap)
             btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
             btn.clicked.connect(self.upd_right_menu_weap)
-            if '_' in name:
-                name1 = name.split('_')
-                text = ""
-                for a in name1:
-                    text += a
-                    text += ' '
-                btn.setText(text)
-            else:
-                btn.setText(name)
+            btn.setText(namesp)
             self.ui.horizontalLayout_7.addWidget(btn)
 
             # Icon, it's Geometry
-            btn.setIcon(QtGui.QIcon(f":/weapon/all/{name}.webp"))
+            btn.setIcon(QtGui.QIcon(f":/weapon/all/{name2}.webp"))
             btn.setIconSize(QtCore.QSize(220, 220))
 
-            added_w[name] = btn
+            added_w[name2] = btn
         else:
-            if name in added_w.keys():
-                sender.toggle()
             # deleting button and weapon info
-            nn = added_w[name]
+            nn = added_w[name2]
             nn.setParent(None)
-            del added_w[name]
-            if name in chosen_w.keys():
-                del chosen_w[name]
+            del added_w[name2]
+            if name2 in chosen_w.keys():
+                del chosen_w[name2]
             if not added_w:
                 global currNameWeap
                 currNameWeap = ''
@@ -358,7 +234,7 @@ class Window(QMainWindow):
             msg.setWindowTitle("Error")
             msg.setText('Click on weapon image!')
             msg.setIcon(QMessageBox.Warning)
-            d = msg.exec_()
+            msg.exec_()
             return
         clvl = self.ui.spinBoxWL.value()
         rlvl = self.ui.spinBoxRWL.value()
@@ -379,37 +255,54 @@ class Window(QMainWindow):
         self.ui.sliderReqNormal.setValue(1)
         self.ui.sliderReqSkill.setValue(1)
         self.ui.sliderReqBurst.setValue(1)
+    # __________________________________________________________________________________________________________________
 
+    @staticmethod
+    def clear_buttons(mode: str, added_: dict, actions: dict):
+        for name, val in added_.items():
+            val.setParent(None)
+            actions[name].setChecked(False)
+        if mode == 'chars':
+            global currNameChar, added, chosen
+            currNameChar = ''
+            added = {}
+            chosen = {}
+        else:
+            global currNameWeap, added_w, chosen_w
+            currNameWeap = ''
+            added_w = {}
+            chosen_w = {}
+    # __________________________________________________________________________________________________________________
     @classmethod
     def calc_chars(cls):
         """Calcs resources required for chosen characters"""
-        print("----------\nfrom calc_everything")
+        print("----------\nfrom calc_chars")
         global resources
         # resources = {}
         resources = {'total_exp': 0, 'exp_weapon': 0, 'total_mora': 0,
                      'crystal_exp': [0, 0, 0, 0], 'book_exp': [0, 0, 0, 0]}
-
+        print(list(resources.keys()))
         for name, pers in chosen.items():
-            if all_chars[name].local.name not in resources.keys():        # Local things
+            if all_chars[name].local.name not in resources.keys():  # Local things
                 resources[all_chars[name].local.name] = 0
         for name, pers in chosen.items():
-            if all_chars[name].boss.name not in resources.keys():         # Bosses
+            if all_chars[name].boss.name not in resources.keys():  # Bosses
                 resources[all_chars[name].boss.name] = 0
         for name, pers in chosen.items():
-            if all_chars[name].enemie.name not in resources.keys():       # Enemies' loot
+            if all_chars[name].enemie.name not in resources.keys():  # Enemies' loot
                 resources[all_chars[name].enemie.name] = [0, 0, 0, 0]
         for name, pers in chosen.items():
-            if all_chars[name].gems.name not in resources.keys():         # Elemental gems
+            if all_chars[name].gems.name not in resources.keys():  # Elemental gems
                 resources[all_chars[name].gems.name] = [0, 0, 0, 0, 0]
         for name, pers in chosen.items():
-            if all_chars[name].boss_tal.name not in resources.keys():     # Weekly bosses
+            if all_chars[name].boss_tal.name not in resources.keys():  # Weekly bosses
                 resources[all_chars[name].boss_tal.name] = 0
         for name, pers in chosen.items():
-            cls.count_tal_books(pers.ctal1, pers.rtal1, name)             # Talent books
+            cls.count_tal_books(pers.ctal1, pers.rtal1, name)  # Talent books
             cls.count_tal_books(pers.ctal2, pers.rtal2, name)
             cls.count_tal_books(pers.ctal3, pers.rtal3, name)
         for name, pers in chosen.items():
-            cls.count_tal_enemies(pers.ctal1, pers.rtal1, name)           # Talent enemies
+            cls.count_tal_enemies(pers.ctal1, pers.rtal1, name)  # Talent enemies
             cls.count_tal_enemies(pers.ctal2, pers.rtal2, name)
             cls.count_tal_enemies(pers.ctal3, pers.rtal3, name)
 
@@ -615,7 +508,7 @@ class Window(QMainWindow):
             if name == 'total_mora' or name in list(Enemies_gen.__members__.keys()):
                 lay = self.ui.formLayout
             elif (name == 'book_exp' or name in list(Locals.__members__.keys()) or
-                                        name in list(Boss.__members__.keys()) or name in list(Gems.__members__.keys())):
+                  name in list(Boss.__members__.keys()) or name in list(Gems.__members__.keys())):
                 lay = self.ui.formLayout_4
             elif name in list(Talents.__members__.keys()) or name in list(Boss_tals.__members__.keys()):
                 lay = self.ui.formLayout_3
@@ -625,7 +518,8 @@ class Window(QMainWindow):
             if isinstance(r, list):  # list resources - enemies loot, etc.
                 if name in list(Asc_weap.__members__.keys()) or name in list(Gems.__members__.keys()):
                     smth = 5
-                else: smth = 4
+                else:
+                    smth = 4
                 for i in range(0, smth):
                     if r[i] == 0:
                         continue
@@ -633,7 +527,7 @@ class Window(QMainWindow):
                     label2 = QLabel()
                     label2.setText(str(r[i]))
                     label2.setFont(font)
-                    pic = QtGui.QPixmap(f":/resources/all/{name+str(i)}.webp")
+                    pic = QtGui.QPixmap(f":/resources/all/{name + str(i)}.webp")
                     pic = pic.scaled(170, 170, transformMode=Qt.SmoothTransformation)
                     label.setPixmap(pic)
                     lay.addRow(label, label2)
@@ -703,7 +597,7 @@ class Window(QMainWindow):
         for i in range(5):
             if currname + str(i) not in cont.keys():
                 continue
-            cont[currname+str(i)][0].setValue(0)
+            cont[currname + str(i)][0].setValue(0)
 
     def add_inventory_line(self):
         print('------------\nfrom add_inventory_line\n', cont.keys())
@@ -713,21 +607,23 @@ class Window(QMainWindow):
         font.setPointSize(12)
         print('resources1\n', resources)
         print('having1\n', having)
+        prevname = ""
         for name, val in resources.items():
             print(name)
-            prevname = ""
+
             if name in ['total_exp', 'exp_weapon']:
                 continue
             if isinstance(val, list):
                 if name in list(Asc_weap.__members__.keys()) or name in list(Gems.__members__.keys()):
                     smth = 5
-                else: smth = 4
+                else:
+                    smth = 4
                 flag = False
                 for i in range(smth):
                     if val[i] == 0:
                         continue
                     label = QLabel()
-                    pic = QtGui.QPixmap(f":/resources/all/{name+str(i)}.webp")
+                    pic = QtGui.QPixmap(f":/resources/all/{name + str(i)}.webp")
                     pic = pic.scaled(170, 170, transformMode=Qt.SmoothTransformation)
                     label.setPixmap(pic)
                     ver = QVBoxLayout()
@@ -750,6 +646,7 @@ class Window(QMainWindow):
 
                     cont[name + str(i)] = [spin, label1]
 
+                    print(name, prevname, "ff")
                     if name != prevname and not flag:
                         button = QPushButton(text="Clear")
                         button.clicked.connect(self.for_clear_btn)
@@ -802,10 +699,11 @@ class Window(QMainWindow):
             elif isinstance(val, list):
                 if name in list(Asc_weap.__members__.keys()) or name in list(Gems.__members__.keys()):
                     smth = 5
-                else: smth = 4
+                else:
+                    smth = 4
                 for i in range(smth):
-                    if name+str(i) in cont.keys():
-                        having[name][i] = cont[name+str(i)][0].value()
+                    if name + str(i) in cont.keys():
+                        having[name][i] = cont[name + str(i)][0].value()
         print('having after\n', having)
         print('resources\n', resources)
         print('----------')
@@ -824,15 +722,16 @@ class Window(QMainWindow):
                 continue
             # print(name)
             if isinstance(val, int) and name in cont.keys():
-                ss = resources[name]-val
+                ss = resources[name] - val
                 if ss <= 0:
                     cont[name][1].setText('You have enough')
                 else:
-                    cont[name][1].setText("You need "+str(ss)+" more")
+                    cont[name][1].setText("You need " + str(ss) + " more")
             elif isinstance(val, list):
                 if name in list(Asc_weap.__members__.keys()) or name in list(Gems.__members__.keys()):
                     smth = 5
-                else: smth = 4
+                else:
+                    smth = 4
                 for i in range(0, smth):
                     nn = ''.join([name, str(i)])
                     if nn in cont.keys():
@@ -856,30 +755,30 @@ class Window(QMainWindow):
                 smth = 5
             else:
                 smth = 4
-            for i in range(smth-1):
-                if resources[name][i+1] == 0:
+            for i in range(smth - 1):
+                if resources[name][i + 1] == 0:
                     break
                 if val[i] >= 3:
-                    having[name][i+1] += val[i] // 3
+                    having[name][i + 1] += val[i] // 3
                     having[name][i] = val[i] % 3
             print(name, 'one-side transformed having\n', having)
-            for i in range(smth-1, 1, -1):
-                if resources[name][i-1] == 0:
+            for i in range(smth - 1, 1, -1):
+                if resources[name][i - 1] == 0:
                     break
                 if having[name][i] > resources[name][i]:
-                    having[name][i-1] += 3*(having[name][i] - resources[name][i])
+                    having[name][i - 1] += 3 * (having[name][i] - resources[name][i])
                     having[name][i] -= (having[name][i] - resources[name][i])
             print('two-side transformed having\n', having)
             print('entered\n', entered)
             print('cont keys\n', cont.keys())
-            for i in range(smth-1):
+            for i in range(smth - 1):
                 while having[name][i] > entered[name][i] and \
-                      having[name][i] > resources[name][i] and having[name][i] >= 3:
+                        having[name][i] > resources[name][i] and having[name][i] >= 3:
                     having[name][i] -= 3
-                    having[name][i+1] += 1
+                    having[name][i + 1] += 1
                 if name + str(i) in cont.keys():
                     cont[name + str(i)][0].setValue(having[name][i])
-                if name + str(i+1) in cont.keys():
+                if name + str(i + 1) in cont.keys():
                     cont[name + str(i + 1)][0].setValue(having[name][i + 1])
 
         print('three-side transformed having\n', having, '\n--------------')
@@ -896,14 +795,14 @@ class Window(QMainWindow):
                 smth = 5
             else:
                 smth = 4
-            for i in range(smth-1):  # one side  * -> ** -> *** -> ****
+            for i in range(smth - 1):  # one side  * -> ** -> *** -> ****
                 if having[name][i] <= resources[name][i]:
                     continue
-                if resources[name][i+1] == 0:
+                if resources[name][i + 1] == 0:
                     break
                 rest = having[name][i] - resources[name][i]
                 having[name][i] -= rest
-                having[name][i+1] += rest // 3
+                having[name][i + 1] += rest // 3
                 having[name][i] += rest % 3
                 print(name, i, "having1\n", having)
                 if name + str(i) in cont.keys():
@@ -911,13 +810,13 @@ class Window(QMainWindow):
                 if name + str(i + 1) in cont.keys():
                     cont[name + str(i + 1)][0].setValue(having[name][i + 1])
 
-            for i in range(smth-1, 1, -1):
-                if resources[name][i-1] == 0:
+            for i in range(smth - 1, 1, -1):
+                if resources[name][i - 1] == 0:
                     break
                 if having[name][i] > resources[name][i]:
                     rest = having[name][i] - resources[name][i]
                     having[name][i] -= rest
-                    having[name][i-1] += rest*3
+                    having[name][i - 1] += rest * 3
                     if name + str(i) in cont.keys():
                         cont[name + str(i)][0].setValue(having[name][i])
                     if name + str(i - 1) in cont.keys():
@@ -925,89 +824,46 @@ class Window(QMainWindow):
                 print(name, i, "having2\n", having)
         print('-------------------')
 
-    def read_file_weap(self):
-        file_weap = open('saves_weap.txt', 'r')
-        for line in file_weap:
-            curr = line.split()
-            name = curr[0]
-            del curr[0]
-            curr1 = list(map(int, curr))
-            chosen_w[name] = Weap_info(*curr1)
 
-            # adding a button
-            btn = QToolButton(parent=self.ui.scrollAreaWeap)
-            btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-            btn.clicked.connect(self.upd_right_menu_weap)
-            if '_' in name:
-                name1 = name.split('_')
-                text = ""
-                for a in name1:
-                    text += a
-                    text += ' '
-                btn.setText(text)
-            else:
-                btn.setText(name)
-            self.ui.horizontalLayout_7.addWidget(btn)
-
-            # Icon, it's Geometry
-            btn.setIcon(QtGui.QIcon(f":/weapon/all/{name}.webp"))
-            btn.setIconSize(QtCore.QSize(220, 220))
-
-            added_w[name] = btn
-
-    def read_file_chars(self):
-        file_chars = open("saves_chars.txt", 'r')
-        for line in file_chars:
-            curr = line.split()
-            name = curr[0]
-            del curr[0]
-            curr1 = list(map(int, curr))
-            chosen[name] = Char_info(*curr1)
-
-            # adding a button
-            btn = QToolButton(parent=self.ui.scrollAreaChars)
-            btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
-            btn.clicked.connect(self.upd_right_menu_char)
-            if '_' in name:
-                btn.setText(name.split('_')[0] + ' ' + name.split('_')[1])
-            else:
-                btn.setText(name)
-            self.ui.horizontalLayout_6.addWidget(btn)
-
-            # Icon, it's Geometry
-            btn.setIcon(QtGui.QIcon(f":/chars/all/{name}.webp"))
-            btn.setIconSize(QtCore.QSize(285, 530))
-
-            added[name] = btn
-
-        file_chars.close()
+def read_file(mode: str, file: str, chosen_: dict, actions: dict):
+    try:
+        with open(file, "r") as file_:
+            for line in file_:
+                curr = line.split()
+                name = curr[0]
+                del curr[0]
+                curr1 = list(map(int, curr))
+                if mode == 'chars':
+                    chosen_[name] = Char_info(*curr1)
+                else:
+                    chosen_[name] = Weap_info(*curr1)
+                actions[name].trigger()
+    except FileNotFoundError:
+        pass
 
 
 @atexit.register
 def write_file_chars():
-    file_chars = open("saves_chars.txt", 'w')
-    for name, val in chosen.items():
-        file_chars.write(
-            f"{name} {val.clvl} {val.rlvl} {val.casc} {val.rasc} "
-            f"{val.ctal1} {val.ctal2} {val.ctal3} {val.rtal1} {val.rtal2} {val.rtal3}\n"
-        )
-    file_chars.close()
+    with open("saves_chars.txt", 'w') as file_chars:
+        for name, val in chosen.items():
+            file_chars.write(
+                f"{name} {val.clvl} {val.rlvl} {val.casc} {val.rasc} "
+                f"{val.ctal1} {val.ctal2} {val.ctal3} {val.rtal1} {val.rtal2} {val.rtal3}\n"
+            )
 
 
 @atexit.register
 def write_file_weap():
-    file_weap = open("saves_weap.txt", 'w')
-    for name, val in chosen_w.items():
-        file_weap.write(f"{name} {val.clvl} {val.rlvl} {val.casc} {val.rasc}\n")
-    file_weap.close()
+    with open("saves_weap.txt", 'w') as file_weap:
+        for name, val in chosen_w.items():
+            file_weap.write(f"{name} {val.clvl} {val.rlvl} {val.casc} {val.rasc}\n")
 
 
 if __name__ == '__main__':
-    file = open('saves_weap.txt', "w")
-    file.close()
-    file = open('saves_chars.txt', "w")
-    file.close()
+
     app = QApplication(sys.argv)
     window = Window()
     window.show()
+    read_file('chars', "saves_chars.txt", chosen, actions_chars)
+    read_file('weap', "saves_weap.txt", chosen_w, actions_weap)
     sys.exit(app.exec_())
