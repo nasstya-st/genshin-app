@@ -42,6 +42,8 @@ class Window(QMainWindow):
         self.create_actions('weapon', claymores, self.ui.menuClaymores)
         self.create_actions('weapon', polearms, self.ui.menuPolearms)
 
+        self.add_permanent_rows()
+
         self.setWindowTitle('Genshin resources calculator')
         self.setWindowIcon(QtGui.QIcon(f":/icons/all/icon.jpg"))
         # Setting ids for radio buttons
@@ -488,9 +490,11 @@ class Window(QMainWindow):
         if idx == 1:
             self.print_results()
         elif idx == 2:
-            self.add_permanent_rows()
+
+            print("transfer1 ", self.ButtonGroupTransform.checkedId())
             self.add_inventory_line()
             self.add_permanent_rows(mode=1)
+            print("transfer2 ", self.ButtonGroupTransform.checkedId())
 
     def print_results(self):
         print('from print_results')
@@ -558,7 +562,8 @@ class Window(QMainWindow):
         btn.setFixedSize(150, 50)
         self.ui.formLayout_7.addRow(label, btn)
 
-        if mode: return
+        if mode:
+            return
 
         label1 = QLabel("Chose transforming mode")
         label1.setFont(font)
@@ -710,6 +715,7 @@ class Window(QMainWindow):
 
     def calc_inventory(self):
         self.receive_inv()
+        print(self.ButtonGroupTransform.checkedId())
         if self.ButtonGroupTransform.checkedId() == 1:
             self.transform()
         else:
