@@ -24,3 +24,5 @@ For convinience they are grouped by categories:
 
 ![image](https://user-images.githubusercontent.com/111587372/188550442-8fcde8df-4fa4-4c3e-8a96-82977905e9f5.png)
 
+## How much more do you need?
+On the third tab you can enter your inventory contents to see how many more you 
