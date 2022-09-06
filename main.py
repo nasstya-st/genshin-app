@@ -15,16 +15,12 @@ currNameChar = ""
 currNameWeap = ''
 
 
-# TODO: добавить предупреждения, если данные введены некорректно  в принципе не обязательно..
-#       но можно сделать так, чтоб когда во второе окошко вводишь 50, в первое больше 50 ввесли нельзя было и тд
 # TODO: добавить русский язык
 # TODO: добавить подсказки в статус бар, мб еще в whats this
 # TODO: добавить справку
 # TODO: добавить для данжевых штук подсказки про дни фарма?????? в статус бар V
 
 
-# TODO: функции для очищения слоя с персонажами и оружием.
-#           сделать создание QAction-ов динамическим, поместить их в словарь, чтобы иметь доступ к ним динамически
 # TODO: добавить функцию hide, чтобы можно было скрыть персонажа и он не учитывался при подсчете, но выбранных оставался
 
 
@@ -81,6 +77,8 @@ class Window(QMainWindow):
     def create_actions(self, mode: str, listt: list, category: QtWidgets.QMenu):
         for name in listt:
             namesp = self.name_translate(name, "_", " ")
+            name1 = self.name_translate(name, "'", '')
+            name2 = self.name_translate(name1, "-", "_")
             curr = QAction()
             curr.setCheckable(True)
             curr.setText(namesp)
@@ -89,7 +87,7 @@ class Window(QMainWindow):
                 actions_chars[name] = curr
             elif mode == 'weapon':
                 curr.triggered.connect(self.add_weap_button)
-                actions_weap[name] = curr
+                actions_weap[name2] = curr
             category.addAction(curr)
     # __________________________________________________________________________________________________________________
     # Changing talents labels
@@ -185,8 +183,11 @@ class Window(QMainWindow):
     def upd_right_menu_weap(self):
         sender = self.sender()
         bb = sender.text()
+        nameus = self.name_translate(bb, ' ', '_')
+        name1 = self.name_translate(nameus, "'", '')
+        name2 = self.name_translate(name1, "-", "_")
         global currNameWeap
-        currNameWeap = self.name_translate(bb, " ", '_')
+        currNameWeap = name2
 
         if currNameWeap in chosen_w.keys():
             dd = chosen_w[currNameWeap]
@@ -261,9 +262,11 @@ class Window(QMainWindow):
 
     @staticmethod
     def clear_buttons(mode: str, added_: dict, actions: dict):
+
         for name, val in added_.items():
             val.setParent(None)
             actions[name].setChecked(False)
+        print('ok1')
         if mode == 'chars':
             global currNameChar, added, chosen
             currNameChar = ''
@@ -365,7 +368,7 @@ class Window(QMainWindow):
     def calc_weap(cls):
         print('-----------\nfrom calc_weap')
         global resources
-
+        print(chosen_w.keys(), "\n", all_weap.keys())
         # Adding all required keys in certain order
         for name in chosen_w.keys():
             if all_weap[name].asc.name not in resources.keys():
@@ -866,7 +869,6 @@ def write_file_weap():
 
 
 if __name__ == '__main__':
-
     app = QApplication(sys.argv)
     window = Window()
     window.show()
