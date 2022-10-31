@@ -8,12 +8,13 @@ import copy
 from PyQt5.QtGui import *
 # from PyQt5.QtCore import *
 from PyQt5.Qt import *
+
 from app import Ui_MainWindow
 from classes import *
 
 currNameChar = ""
 currNameWeap = ''
-
+resources = copy.deepcopy(resources_clear)
 
 # TODO: добавить русский язык
 # TODO: добавить подсказки в статус бар, мб еще в whats this
@@ -22,6 +23,7 @@ currNameWeap = ''
 
 
 # TODO: добавить функцию hide, чтобы можно было скрыть персонажа и он не учитывался при подсчете, но выбранных оставался
+# TODO: в функции трансформ, при обратной трансформации при входных 0-200-0 получается 6-3-65, но первое не должно меняться
 
 
 class Window(QMainWindow):
@@ -57,14 +59,6 @@ class Window(QMainWindow):
         self.ui.buttonGroup_2.setId(self.ui.rb44, 4)
         self.ui.buttonGroup_2.setId(self.ui.rb55, 5)
         self.ui.buttonGroup_2.setId(self.ui.rb66, 6)
-        # Changing talents labels
-        self.ui.sliderNormal.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderNormal, self.ui.labelCurrNormal))
-        self.ui.sliderSkill.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderSkill, self.ui.labelCurrSkill))
-        self.ui.sliderBurst.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderBurst, self.ui.labelCurrBurst))
-        self.ui.sliderReqNormal.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderReqNormal,
-                                                                          self.ui.labelReqNormal))
-        self.ui.sliderReqSkill.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderReqSkill, self.ui.labelReqSkill))
-        self.ui.sliderReqBurst.valueChanged.connect(lambda: self.tal_upd(self.ui.sliderReqBurst, self.ui.labelReqBurst))
         # General functions
         self.ui.save_chars.clicked.connect(self.upd_char)
         self.ui.save_weap.clicked.connect(self.upd_weap)
@@ -90,10 +84,7 @@ class Window(QMainWindow):
                 actions_weap[name2] = curr
             category.addAction(curr)
     # __________________________________________________________________________________________________________________
-    # Changing talents labels
-    @staticmethod
-    def tal_upd(slider: QSlider, label: QLabel):
-        label.setText(str(slider.value()))
+
     # __________________________________________________________________________________________________________________
     @staticmethod
     def name_translate(name: str, from_: str, to: str):
@@ -143,16 +134,11 @@ class Window(QMainWindow):
             msg.setIcon(QMessageBox.Warning)
             msg.exec_()
             return
-        clvl = self.ui.spinBoxCCL.value()
-        rlvl = self.ui.spinBoxRCL.value()
-        casc = self.ui.buttonGroup_2.checkedId()
-        rasc = self.ui.buttonGroup.checkedId()
-        ctal1 = self.ui.sliderNormal.value()
-        ctal2 = self.ui.sliderSkill.value()
-        ctal3 = self.ui.sliderBurst.value()
-        rtal1 = self.ui.sliderReqNormal.value()
-        rtal2 = self.ui.sliderReqSkill.value()
-        rtal3 = self.ui.sliderReqBurst.value()
+        clvl, rlvl = self.ui.spinBoxCCL.value(), self.ui.spinBoxRCL.value()
+        casc, rasc = self.ui.buttonGroup_2.checkedId(), self.ui.buttonGroup.checkedId()
+        ctal1, rtal1 = self.ui.sliderNormal.value(), self.ui.sliderReqNormal.value()
+        ctal2, rtal2 = self.ui.sliderSkill.value(), self.ui.sliderReqSkill.value()
+        ctal3, rtal3 = self.ui.sliderBurst.value(), self.ui.sliderReqBurst.value()
         chosen[currNameChar] = Char_info(clvl, rlvl, casc, rasc, ctal1, ctal2, ctal3, rtal1, rtal2, rtal3)
 
     def upd_right_menu_char(self):
@@ -167,10 +153,8 @@ class Window(QMainWindow):
             aa = chosen[currNameChar]
             self.ui.spinBoxCCL.setValue(aa.clvl)
             self.ui.spinBoxRCL.setValue(aa.rlvl)
-            btn1 = self.ui.buttonGroup_2.button(aa.casc)
-            btn1.click()
-            btn2 = self.ui.buttonGroup.button(aa.rasc)
-            btn2.click()
+            self.ui.buttonGroup_2.button(aa.casc).click()
+            self.ui.buttonGroup.button(aa.rasc).click()
             self.ui.sliderNormal.setValue(aa.ctal1)
             self.ui.sliderSkill.setValue(aa.ctal2)
             self.ui.sliderBurst.setValue(aa.ctal3)
@@ -248,10 +232,8 @@ class Window(QMainWindow):
     def set_to_default(self):
         self.ui.spinBoxCCL.setValue(0)
         self.ui.spinBoxRCL.setValue(0)
-        btn1 = self.ui.buttonGroup_2.button(0)
-        btn1.click()
-        btn2 = self.ui.buttonGroup.button(0)
-        btn2.click()
+        self.ui.buttonGroup_2.button(0).click()
+        self.ui.buttonGroup.button(0).click()
         self.ui.sliderNormal.setValue(1)
         self.ui.sliderSkill.setValue(1)
         self.ui.sliderBurst.setValue(1)
@@ -262,11 +244,9 @@ class Window(QMainWindow):
 
     @staticmethod
     def clear_buttons(mode: str, added_: dict, actions: dict):
-
         for name, val in added_.items():
             val.setParent(None)
             actions[name].setChecked(False)
-        print('ok1')
         if mode == 'chars':
             global currNameChar, added, chosen
             currNameChar = ''
@@ -278,40 +258,23 @@ class Window(QMainWindow):
             added_w = {}
             chosen_w = {}
     # __________________________________________________________________________________________________________________
+
     @classmethod
     def calc_chars(cls):
         """Calcs resources required for chosen characters"""
         print("----------\nfrom calc_chars")
         global resources
-        # resources = {}
-        resources = {'total_exp': 0, 'exp_weapon': 0, 'total_mora': 0,
-                     'crystal_exp': [0, 0, 0, 0], 'book_exp': [0, 0, 0, 0]}
+        resources = copy.deepcopy(resources_clear)
         print(list(resources.keys()))
         for name, pers in chosen.items():
-            if all_chars[name].local.name not in resources.keys():  # Local things
-                resources[all_chars[name].local.name] = 0
-        for name, pers in chosen.items():
-            if all_chars[name].boss.name not in resources.keys():  # Bosses
-                resources[all_chars[name].boss.name] = 0
-        for name, pers in chosen.items():
-            if all_chars[name].enemie.name not in resources.keys():  # Enemies' loot
-                resources[all_chars[name].enemie.name] = [0, 0, 0, 0]
-        for name, pers in chosen.items():
-            if all_chars[name].gems.name not in resources.keys():  # Elemental gems
-                resources[all_chars[name].gems.name] = [0, 0, 0, 0, 0]
-        for name, pers in chosen.items():
-            if all_chars[name].boss_tal.name not in resources.keys():  # Weekly bosses
-                resources[all_chars[name].boss_tal.name] = 0
-        for name, pers in chosen.items():
-            cls.count_tal_books(pers.ctal1, pers.rtal1, name)  # Talent books
-            cls.count_tal_books(pers.ctal2, pers.rtal2, name)
-            cls.count_tal_books(pers.ctal3, pers.rtal3, name)
-        for name, pers in chosen.items():
-            cls.count_tal_enemies(pers.ctal1, pers.rtal1, name)  # Talent enemies
-            cls.count_tal_enemies(pers.ctal2, pers.rtal2, name)
-            cls.count_tal_enemies(pers.ctal3, pers.rtal3, name)
+            cls.count_tal(pers.ctal1, pers.rtal1, all_chars[name].talent_book.name, books_tals)  # Talent books
+            cls.count_tal(pers.ctal2, pers.rtal2, all_chars[name].talent_book.name, books_tals)
+            cls.count_tal(pers.ctal3, pers.rtal3, all_chars[name].talent_book.name, books_tals)
 
-        for name, pers in chosen.items():
+            cls.count_tal(pers.ctal1, pers.rtal1, all_chars[name].enemie.name, enemies_tals)     # Talent enemies
+            cls.count_tal(pers.ctal2, pers.rtal2, all_chars[name].enemie.name, enemies_tals)
+            cls.count_tal(pers.ctal3, pers.rtal3, all_chars[name].enemie.name, enemies_tals)
+
             for m in range(pers.casc, pers.rasc):
                 if m == 0:
                     resources[all_chars[name].gems.name][1] += gems[m]
@@ -332,10 +295,8 @@ class Window(QMainWindow):
                     resources[all_chars[name].gems.name][4] += gems[m]
                     resources[all_chars[name].enemie.name][3] += enemies_asc[m]
 
-            resources['total_mora'] += sum(mora_asc[pers.casc:pers.rasc])
-            resources["total_mora"] += sum(mora_tals[pers.ctal1:pers.rtal1])
-            resources["total_mora"] += sum(mora_tals[pers.ctal2:pers.rtal2])
-            resources["total_mora"] += sum(mora_tals[pers.ctal3:pers.rtal3])
+            resources['total_mora'] += sum(mora_asc[pers.casc:pers.rasc]) + sum(mora_tals[pers.ctal1:pers.rtal1])
+            resources["total_mora"] += sum(mora_tals[pers.ctal2:pers.rtal2]) + sum(mora_tals[pers.ctal3:pers.rtal3])
 
             resources[all_chars[name].local.name] += sum(local[pers.casc:pers.rasc])
             resources[all_chars[name].boss.name] += sum(boss[pers.casc:pers.rasc])
@@ -345,18 +306,16 @@ class Window(QMainWindow):
 
             resources['total_exp'] += sum(exp_lvl[pers.clvl:pers.rlvl])  # Experience
 
-        while resources['total_exp'] >= 20000:
-            resources["book_exp"][3] += 1
-            resources['total_mora'] += 4000
-            resources['total_exp'] -= 20000
-        while resources['total_exp'] >= 5000:
-            resources["book_exp"][2] += 1
-            resources['total_mora'] += 1000
-            resources['total_exp'] -= 5000
-        while resources['total_exp'] >= 1000:
-            resources["book_exp"][1] += 1
-            resources['total_mora'] += 200
-            resources['total_exp'] -= 1000
+        resources["book_exp"][3] += resources['total_exp'] // 20_000
+        resources['total_mora'] += 4000 * (resources['total_exp'] // 20_000)
+        resources['total_exp'] %= 20_000
+        resources["book_exp"][2] += resources['total_exp'] // 5000
+        resources['total_mora'] += 1000 * (resources['total_exp'] // 5000)
+        resources['total_exp'] %= 5000
+        resources["book_exp"][1] += resources['total_exp'] // 1000
+        resources['total_mora'] += 200 * (resources['total_exp'] // 1000)
+        resources['total_exp'] %= 1000
+
         if resources['total_exp'] != 0:
             resources["book_exp"][1] += 1
             resources['total_mora'] += 200
@@ -369,20 +328,6 @@ class Window(QMainWindow):
         print('-----------\nfrom calc_weap')
         global resources
         print(chosen_w.keys(), "\n", all_weap.keys())
-        # Adding all required keys in certain order
-        for name in chosen_w.keys():
-            if all_weap[name].asc.name not in resources.keys():
-                resources[all_weap[name].asc.name] = [0, 0, 0, 0, 0]
-        print('ok1')
-        for name in chosen_w.keys():
-            if all_weap[name].enemie_gen.name not in resources.keys():
-                resources[all_weap[name].enemie_gen.name] = [0, 0, 0, 0]
-        print('ok2')
-        for name in chosen_w.keys():
-            if all_weap[name].enemie_elite.name not in resources.keys():
-                resources[all_weap[name].enemie_elite.name] = [0, 0, 0, 0]
-
-        # Calculating
         for name, weap in chosen_w.items():
             if all_weap[name].rarity == 4:
                 resources['total_mora'] += sum(mora_asc_w4[weap.casc:weap.rasc])
@@ -440,47 +385,32 @@ class Window(QMainWindow):
                         resources[all_weap[name].enemie_elite.name][3] += enemies_elite5[a]
 
             resources['exp_weapon'] += sum(exp_weap[weap.clvl:weap.rlvl])
-            while resources['exp_weapon'] >= 10000:
-                resources['crystal_exp'][3] += 1
-                resources['total_mora'] += 1000
-                resources['exp_weapon'] -= 10000
-            while resources['exp_weapon'] >= 2000:
-                resources['crystal_exp'][2] += 1
-                resources['total_mora'] += 200
-                resources['exp_weapon'] -= 2000
-            while resources['exp_weapon'] >= 400:
-                resources['crystal_exp'][1] += 1
-                resources['exp_weapon'] -= 400
-                resources['total_mora'] += 40
+
+            resources["crystal_exp"][3] += resources['exp_weapon'] // 10_000
+            resources['total_mora'] += 1000 * (resources['exp_weapon'] // 10_000)
+            resources['exp_weapon'] %= 10_000
+            resources["crystal_exp"][2] += resources['exp_weapon'] // 2000
+            resources['total_mora'] += 200 * (resources['exp_weapon'] // 2000)
+            resources['exp_weapon'] %= 2000
+            resources["crystal_exp"][1] += resources['exp_weapon'] // 400
+            resources['total_mora'] += 40 * (resources['exp_weapon'] // 400)
+            resources['exp_weapon'] %= 400
+
             if resources['exp_weapon'] != 0:
                 resources['crystal_exp'][1] += 1
                 resources['total_mora'] += 40
             resources['exp_weapon'] = 0
 
     @staticmethod
-    def count_tal_books(c: int, r: int, name: str):
+    def count_tal(c: int, r: int, name: str, array: tuple):
+        global resources
         for h in range(c, r):
-            if all_chars[name].talent_book.name not in resources.keys():
-                resources[all_chars[name].talent_book.name] = [0, 0, 0, 0]
             if h == 1:
-                resources[all_chars[name].talent_book.name][1] += books_tals[h]
+                resources[name][1] += array[h]
             elif h in [2, 3, 4, 5]:
-                resources[all_chars[name].talent_book.name][2] += books_tals[h]
+                resources[name][2] += array[h]
             elif h in [6, 7, 8, 9]:
-                resources[all_chars[name].talent_book.name][3] += books_tals[h]
-
-    @staticmethod
-    def count_tal_enemies(c: int, r: int, name: str):
-        for h in range(c, r):
-            # Enemies
-            if all_chars[name].enemie.name not in resources.keys():
-                resources[all_chars[name].enemie.name] = [0, 0, 0, 0]
-            if h == 1:
-                resources[all_chars[name].enemie.name][1] += enemies_tals[h]
-            elif h in [2, 3, 4, 5]:
-                resources[all_chars[name].enemie.name][2] += enemies_tals[h]
-            elif h in [6, 7, 8, 9]:
-                resources[all_chars[name].enemie.name][3] += enemies_tals[h]
+                resources[name][3] += array[h]
 
     @staticmethod
     def clear_layout(layout: QFormLayout, rest: int = 0):
@@ -493,11 +423,8 @@ class Window(QMainWindow):
         if idx == 1:
             self.print_results()
         elif idx == 2:
-
-            print("transfer1 ", self.ButtonGroupTransform.checkedId())
             self.add_inventory_line()
             self.add_permanent_rows(mode=1)
-            print("transfer2 ", self.ButtonGroupTransform.checkedId())
 
     def print_results(self):
         print('from print_results')
@@ -508,8 +435,8 @@ class Window(QMainWindow):
 
         font = QtGui.QFont()
         font.setPointSize(20)
-        font.setBold(True)
         font.setWeight(75)
+        font.setBold(True)
 
         for name, r in resources.items():
             if name == 'total_mora' or name in list(Enemies_gen.__members__.keys()):
@@ -554,8 +481,8 @@ class Window(QMainWindow):
     def add_permanent_rows(self, mode: int = 0):
         font = QtGui.QFont()
         font.setPointSize(15)
-        font.setBold(True)
         font.setWeight(75)
+        font.setBold(True)
 
         label = QLabel("Enter your inventory contents")
         btn = QPushButton(text="Calculate")
@@ -568,7 +495,7 @@ class Window(QMainWindow):
         if mode:
             return
 
-        label1 = QLabel("Chose transforming mode")
+        label1 = QLabel("Choose transforming mode")
         label1.setFont(font)
         lay = QHBoxLayout()
         lay.setSpacing(20)
@@ -646,15 +573,13 @@ class Window(QMainWindow):
 
                     if name in having:
                         spin.setValue(having[name][i])
-                        ss = resources[name][i] - having[name][i]
-                        if ss <= 0:
+                        if resources[name][i] - having[name][i] <= 0:
                             label1.setText('You have enough')
                         else:
-                            label1.setText("You need " + str(ss) + " more")
+                            label1.setText(f"You need {resources[name][i] - having[name][i]}  more")
 
                     cont[name + str(i)] = [spin, label1]
 
-                    print(name, prevname, "ff")
                     if name != prevname and not flag:
                         button = QPushButton(text="Clear")
                         button.clicked.connect(self.for_clear_btn)
@@ -682,11 +607,10 @@ class Window(QMainWindow):
 
                 if name in having:
                     spin.setValue(having[name])
-                    ss = resources[name] - having[name]
-                    if ss <= 0:
+                    if resources[name] - having[name] <= 0:
                         label1.setText('You have enough')
                     else:
-                        label1.setText("You need " + str(ss) + " more")
+                        label1.setText(f"You need {resources[name] - having[name]} more")
 
                 cont[name] = [spin, label1]
                 self.ui.formLayout_7.addRow(label, ver)
@@ -718,7 +642,6 @@ class Window(QMainWindow):
 
     def calc_inventory(self):
         self.receive_inv()
-        print(self.ButtonGroupTransform.checkedId())
         if self.ButtonGroupTransform.checkedId() == 1:
             self.transform()
         else:
@@ -729,13 +652,11 @@ class Window(QMainWindow):
         for name, val in having.items():
             if name in ['total_exp', 'exp_weapon']:
                 continue
-            # print(name)
             if isinstance(val, int) and name in cont.keys():
-                ss = resources[name] - val
-                if ss <= 0:
+                if resources[name] - val <= 0:
                     cont[name][1].setText('You have enough')
                 else:
-                    cont[name][1].setText("You need " + str(ss) + " more")
+                    cont[name][1].setText(f"You need {resources[name] - val} more")
             elif isinstance(val, list):
                 if name in list(Asc_weap.__members__.keys()) or name in list(Gems.__members__.keys()):
                     smth = 5
@@ -744,11 +665,10 @@ class Window(QMainWindow):
                 for i in range(0, smth):
                     nn = ''.join([name, str(i)])
                     if nn in cont.keys():
-                        ss = resources[name][i] - val[i]
-                        if ss <= 0:
+                        if resources[name][i] - val[i] <= 0:
                             cont[nn][1].setText('You have enough')
                         else:
-                            cont[nn][1].setText("You need " + str(ss) + " more")
+                            cont[nn][1].setText(f"You need {resources[name][i] - val[i]} more")
         print('------------')
 
     @staticmethod
@@ -797,6 +717,7 @@ class Window(QMainWindow):
         print('---------------\nfrom reversed_transform')
         global having
         global cont
+        orighaving = copy.deepcopy(having)
         for name, val in having.items():
             if isinstance(val, int):
                 continue
@@ -820,7 +741,7 @@ class Window(QMainWindow):
                     cont[name + str(i + 1)][0].setValue(having[name][i + 1])
 
             for i in range(smth - 1, 1, -1):
-                if resources[name][i - 1] == 0:
+                if resources[name][i - 1] == 0 or orighaving[name][i]>=having[name][i]:
                     break
                 if having[name][i] > resources[name][i]:
                     rest = having[name][i] - resources[name][i]

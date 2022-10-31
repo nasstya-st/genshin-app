@@ -1077,6 +1077,12 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         self.tabWidget.setCurrentIndex(0)
+        self.sliderNormal.valueChanged['int'].connect(self.labelCurrNormal.setNum)
+        self.sliderSkill.valueChanged['int'].connect(self.labelCurrSkill.setNum)
+        self.sliderBurst.valueChanged['int'].connect(self.labelCurrBurst.setNum)
+        self.sliderReqNormal.valueChanged['int'].connect(self.labelReqNormal.setNum)
+        self.sliderReqSkill.valueChanged['int'].connect(self.labelReqSkill.setNum)
+        self.sliderReqBurst.valueChanged['int'].connect(self.labelReqBurst.setNum)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
 
     def retranslateUi(self, MainWindow):
