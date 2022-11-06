@@ -32,6 +32,10 @@ class Window(QMainWindow):
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
 
+        id = QFontDatabase.addApplicationFont(':/fonts/Genshin_Impact.ttf')
+        self.fontgensh = QFontDatabase.applicationFontFamilies(id)[0]
+        self.ui.menubar.setFont(QFont(self.fontgensh, 9))
+
         self.create_actions('characters', chars_names5, self.ui.menu5_star)
         self.create_actions('characters', chars_names4, self.ui.menu4_star)
         self.create_actions('weapon', bows, self.ui.menuBows)
@@ -76,6 +80,7 @@ class Window(QMainWindow):
             curr = QAction()
             curr.setCheckable(True)
             curr.setText(namesp)
+            curr.setFont(QFont(self.fontgensh, 9))
             if mode == 'characters':
                 curr.triggered.connect(self.add_char_button)
                 actions_chars[name] = curr
@@ -110,10 +115,11 @@ class Window(QMainWindow):
             btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
             btn.clicked.connect(self.upd_right_menu_char)
             btn.setText(namesp)
+            btn.setFont(QFont(self.fontgensh, 13))
             self.ui.horizontalLayout_6.addWidget(btn)
             # Icon, its Geometry
             btn.setIcon(QtGui.QIcon(f":/chars/all/{nameus}.webp"))
-            btn.setIconSize(QtCore.QSize(285, 530))
+            btn.setIconSize(QtCore.QSize(270, 520))
 
             added[nameus] = btn
         else:
@@ -197,6 +203,7 @@ class Window(QMainWindow):
             btn.setToolButtonStyle(Qt.ToolButtonTextUnderIcon)
             btn.clicked.connect(self.upd_right_menu_weap)
             btn.setText(namesp)
+            btn.setFont(QFont(self.fontgensh, 12))
             self.ui.horizontalLayout_7.addWidget(btn)
 
             # Icon, it's Geometry
@@ -433,11 +440,6 @@ class Window(QMainWindow):
         for lll in [self.ui.formLayout, self.ui.formLayout_2, self.ui.formLayout_3, self.ui.formLayout_4]:
             self.clear_layout(lll)
 
-        font = QtGui.QFont()
-        font.setPointSize(20)
-        font.setWeight(75)
-        font.setBold(True)
-
         for name, r in resources.items():
             if name == 'total_mora' or name in list(Enemies_gen.__members__.keys()):
                 lay = self.ui.formLayout
@@ -460,7 +462,7 @@ class Window(QMainWindow):
                     label = QLabel()
                     label2 = QLabel()
                     label2.setText(str(r[i]))
-                    label2.setFont(font)
+                    label2.setFont(QFont(self.fontgensh, 20))
                     pic = QtGui.QPixmap(f":/resources/all/{name + str(i)}.webp")
                     pic = pic.scaled(170, 170, transformMode=Qt.SmoothTransformation)
                     label.setPixmap(pic)
@@ -474,14 +476,12 @@ class Window(QMainWindow):
                 pic = pic.scaled(170, 170, transformMode=Qt.SmoothTransformation)
                 label.setPixmap(pic)
                 label2.setText(str(r))
-                label2.setFont(font)
+                label2.setFont(QFont(self.fontgensh, 20))
                 lay.addRow(label, label2)
         print('-------------')
 
     def add_permanent_rows(self, mode: int = 0):
-        font = QtGui.QFont()
-        font.setPointSize(15)
-        font.setWeight(75)
+        font = QtGui.QFont(self.fontgensh, 15, 75)
         font.setBold(True)
 
         label = QLabel("Enter your inventory contents")
@@ -500,8 +500,7 @@ class Window(QMainWindow):
         lay = QHBoxLayout()
         lay.setSpacing(20)
 
-        font1 = QtGui.QFont()
-        font1.setPointSize(15)
+        font1 = QtGui.QFont(self.fontgensh, 15)
         rbtn1 = QRadioButton(text="More rare first")
         rbtn1.setFont(font1)
 
@@ -537,15 +536,12 @@ class Window(QMainWindow):
     def add_inventory_line(self):
         print('------------\nfrom add_inventory_line\n', cont.keys())
         self.clear_layout(self.ui.formLayout_7, rest=2)
-        # self.add_permanent_rows()
-        font = QtGui.QFont()
-        font.setPointSize(12)
+        font = QtGui.QFont(self.fontgensh, 12)
         print('resources1\n', resources)
         print('having1\n', having)
         prevname = ""
         for name, val in resources.items():
             print(name)
-
             if name in ['total_exp', 'exp_weapon']:
                 continue
             if isinstance(val, list):
@@ -583,6 +579,7 @@ class Window(QMainWindow):
                     if name != prevname and not flag:
                         button = QPushButton(text="Clear")
                         button.clicked.connect(self.for_clear_btn)
+                        button.setFont(font)
                         ver.addWidget(button)
                         flag = True
                         cont[name + str(i)].append(button)
@@ -791,6 +788,9 @@ def write_file_weap():
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
+    # QFontDatabase.addApplicationFont('Genshin_Impact.ttf')
+    with open('Diffnes.qss', 'r') as qss:
+        app.setStyleSheet(qss.read())
     window = Window()
     window.show()
     read_file('chars', "saves_chars.txt", chosen, actions_chars)
