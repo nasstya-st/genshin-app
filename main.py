@@ -1,12 +1,8 @@
-from PyQt5 import QtCore, QtGui, Qt, QtWidgets  # , uic,
+from PyQt5 import QtCore, QtGui, Qt, QtWidgets
 import sys
 import atexit
 import copy
-# from PyQt5.QtWidgets import (QApplication, QMainWindow, QMessageBox, QPushButton, QHBoxLayout, QSpacerItem,
-# QSizePolicy,
-#                              QToolButton, QFormLayout)
 from PyQt5.QtGui import *
-# from PyQt5.QtCore import *
 from PyQt5.Qt import *
 
 from app import Ui_MainWindow
@@ -15,15 +11,6 @@ from classes import *
 currNameChar = ""
 currNameWeap = ''
 resources = copy.deepcopy(resources_clear)
-
-# TODO: добавить русский язык
-# TODO: добавить подсказки в статус бар, мб еще в whats this
-# TODO: добавить справку
-# TODO: добавить для данжевых штук подсказки про дни фарма?????? в статус бар V
-
-
-# TODO: добавить функцию hide, чтобы можно было скрыть персонажа и он не учитывался при подсчете, но выбранных оставался
-# TODO: в функции трансформ, при обратной трансформации при входных 0-200-0 получается 6-3-65, но первое не должно меняться
 
 
 class Window(QMainWindow):
@@ -788,7 +775,6 @@ def write_file_weap():
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
-    # QFontDatabase.addApplicationFont('Genshin_Impact.ttf')
     with open('Diffnes.qss', 'r') as qss:
         app.setStyleSheet(qss.read())
     window = Window()

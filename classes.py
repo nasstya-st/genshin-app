@@ -1,9 +1,4 @@
-# from PyQt5 import QtWidgets, uic, QtCore, QtGui
-# import sys
 import enum
-# from PyQt5.QtWidgets import QApplication, QMainWindow, QMessageBox
-# from app import Ui_MainWindow
-# from main import Window
 from dataclasses import *
 
 
